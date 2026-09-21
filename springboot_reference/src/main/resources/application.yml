@@ -1,0 +1,30 @@
+﻿spring:
+  application:
+    name: bugflow-platform
+  datasource:
+    url: jdbc:postgresql://localhost:5432/bugflow_db
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 125
+      minimum-idle: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+  port: 8080
+
+app:
+  jwt:
+    secret: 9a6e8b24c15b494f875b2e987c2f6d54a3e7b1c9d8e2a3f4b5c6d7e8f9a0b1c2
+    expiration-ms: 86400000 # 24 hours

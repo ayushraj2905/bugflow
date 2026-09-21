@@ -1,0 +1,255 @@
+﻿{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2 mb-1">
+            <i class="fa-solid fa-bug text-sky-600"></i> Report Software Defect / Feature Request
+        </h1>
+        <p class="text-sm text-slate-500 mb-6">Submit issue details with automated AI categorization, severity assessment & duplicate detection</p>
+
+        <!-- Status Message Banner -->
+        <div id="submitStatusAlert" class="hidden mb-4 p-3 rounded-lg text-sm font-semibold"></div>
+
+        <!-- Duplicate Warning Modal/Alert -->
+        <div id="duplicateAlert" class="hidden mb-6 p-4 rounded-xl bg-amber-50 border border-amber-300 text-amber-900">
+            <div class="flex items-center gap-2 font-bold text-sm text-amber-800 mb-2">
+                <i class="fa-solid fa-triangle-exclamation text-amber-600 text-base"></i> Potential Duplicate Issues Detected
+            </div>
+            <div id="duplicateList" class="space-y-1.5 text-xs"></div>
+        </div>
+
+        <!-- AI Recommendation Card -->
+        <div id="aiPreviewCard" class="hidden mb-6 p-4 rounded-xl bg-sky-50 border border-sky-200 text-sky-900">
+            <div class="flex items-center justify-between mb-2">
+                <span class="font-bold text-sm text-sky-900 flex items-center gap-1.5">
+                    <i class="fa-solid fa-brain text-sky-600"></i> AI Triage & Skill Recommendation
+                </span>
+                <span class="text-xs bg-sky-200 text-sky-800 font-semibold px-2 py-0.5 rounded">Confidence: 94%</span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div><strong>Predicted Category:</strong> <span id="aiCat">-</span></div>
+                <div><strong>Recommended Severity:</strong> <span id="aiSev" class="font-bold">-</span></div>
+                <div><strong>Priority:</strong> <span id="aiPri" class="font-bold">-</span></div>
+                <div><strong>Est. Effort:</strong> <span id="aiEffort">-</span> hrs</div>
+            </div>
+            <div class="mt-3 pt-3 border-t border-sky-200 text-xs">
+                <strong>Best-Fit Resolver:</strong> <span id="aiDev">-</span>
+            </div>
+        </div>
+
+        <form id="newIssueForm" class="space-y-5">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Target Project *</label>
+                    <select id="projectId" required class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        {% for p in projects %}
+                        <option value="{{ p.id }}">{{ p.project_name }} ({{ p.key }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Defect Category</label>
+                    <select id="categoryId" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        {% for c in categories %}
+                        <option value="{{ c.id }}">{{ c.category_name }} ({{ c.urgency_enum }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Issue Title / Summary *</label>
+                <input type="text" id="title" required placeholder="e.g. 500 Internal Server Error when generating PDF report" class="w-full text-sm px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none font-medium">
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Detailed Description *</label>
+                <textarea id="description" rows="4" required placeholder="Describe the unexpected behavior, error messages, and context..." class="w-full text-sm px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Reproduction Steps</label>
+                <textarea id="reproSteps" rows="3" placeholder="1. Navigate to /analytics&#10;2. Click 'Export PDF'&#10;3. Observe crash..." class="w-full text-sm px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none font-mono text-xs"></textarea>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Affected Module</label>
+                    <input type="text" id="affectedModule" value="Backend REST API" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Environment Info</label>
+                    <input type="text" id="envInfo" value="Production - Linux x86_64 / Chrome" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Assignee</label>
+                    <select id="assigneeId" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        <option value="">-- Let AI Auto-Assign --</option>
+                        {% for d in developers %}
+                        <option value="{{ d.id }}">{{ d.full_name }} ({{ d.proficiency }} {{ d.team }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Severity</label>
+                    <select id="severity" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        <option value="CRITICAL">CRITICAL</option>
+                        <option value="MAJOR">MAJOR</option>
+                        <option value="MINOR" selected>MINOR</option>
+                        <option value="LOW">LOW</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Priority</label>
+                    <select id="priority" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        <option value="P1">P1 - Urgent</option>
+                        <option value="P2">P2 - High</option>
+                        <option value="P3" selected>P3 - Medium</option>
+                        <option value="P4">P4 - Low</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Sprint Allocation</label>
+                    <select id="sprintId" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        <option value="">-- Backlog (No Sprint) --</option>
+                        {% for s in sprints %}
+                        <option value="{{ s.id }}" selected>{{ s.sprint_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-200 flex justify-between items-center">
+                <button type="button" onclick="triggerAIDuplicateCheck()" class="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-sm font-semibold transition flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> AI Triage & Duplicate Scan
+                </button>
+                <button type="submit" id="submitBtn" class="px-6 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-bold text-sm shadow transition flex items-center gap-2">
+                    <i class="fa-solid fa-check"></i> Submit Issue
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let bestFitDevId = null;
+
+async function triggerAIDuplicateCheck() {
+    const title = document.getElementById('title').value;
+    const desc = document.getElementById('description').value;
+
+    if (!title) {
+        return;
+    }
+
+    try {
+        // 1. Check Duplicates
+        const dupRes = await fetch('/api/v1/bugs/check-duplicate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({title, description: desc || ''})
+        });
+        const dupData = await dupRes.json();
+        const dupBox = document.getElementById('duplicateAlert');
+        const dupList = document.getElementById('duplicateList');
+        if (dupData.duplicates_found > 0) {
+            dupBox.classList.remove('hidden');
+            dupList.innerHTML = dupData.candidates.map(c => `
+                <div class="p-2 bg-white rounded border border-amber-200 flex justify-between items-center">
+                    <span><b>${c.issue_key}</b>: ${c.title} (${c.dev_stage})</span>
+                    <span class="font-bold text-amber-700">${c.similarity_percent}% match</span>
+                </div>
+            `).join('');
+        } else {
+            dupBox.classList.add('hidden');
+        }
+
+        // 2. AI Triage Preview
+        const triageRes = await fetch('/api/v1/bugs/ai-triage-preview', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({title, description: desc || ''})
+        });
+        const tData = await triageRes.json();
+        if (tData.analysis) {
+            document.getElementById('aiPreviewCard').classList.remove('hidden');
+            document.getElementById('aiCat').innerText = tData.analysis.predicted_category;
+            document.getElementById('aiSev').innerText = tData.analysis.predicted_severity;
+            document.getElementById('aiPri').innerText = tData.analysis.predicted_priority;
+            document.getElementById('aiEffort').innerText = tData.analysis.estimated_effort;
+
+            // Auto select in form
+            document.getElementById('severity').value = tData.analysis.predicted_severity;
+            document.getElementById('priority').value = tData.analysis.predicted_priority;
+
+            if (tData.recommended_developers && tData.recommended_developers.length > 0) {
+                const dev = tData.recommended_developers[0];
+                bestFitDevId = dev.dev_id;
+                document.getElementById('aiDev').innerText = `${dev.full_name} (${dev.team} - Match Score: ${dev.match_score}%)`;
+            }
+        }
+    } catch(err) {
+        console.warn('AI Triage preview skipped:', err);
+    }
+}
+
+document.getElementById('title').addEventListener('blur', triggerAIDuplicateCheck);
+
+document.getElementById('newIssueForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const alertBox = document.getElementById('submitStatusAlert');
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Submitting...`;
+
+    const projVal = document.getElementById('projectId').value;
+    const catVal = document.getElementById('categoryId').value;
+    const assigneeVal = document.getElementById('assigneeId').value;
+    const sprintVal = document.getElementById('sprintId').value;
+
+    const payload = {
+        project_id: projVal ? parseInt(projVal) : 1,
+        category_id: catVal ? parseInt(catVal) : null,
+        title: document.getElementById('title').value.trim(),
+        description: document.getElementById('description').value.trim(),
+        reproduction_steps: document.getElementById('reproSteps').value,
+        affected_module: document.getElementById('affectedModule').value || "Backend API",
+        environment_info: document.getElementById('envInfo').value || "Production",
+        severity: document.getElementById('severity').value || "MINOR",
+        priority: document.getElementById('priority').value || "P3",
+        assignee_id: assigneeVal ? parseInt(assigneeVal) : (bestFitDevId || null),
+        sprint_id: sprintVal ? parseInt(sprintVal) : null
+    };
+
+    try {
+        const res = await fetch('/api/v1/bugs/', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (res.ok) {
+            alertBox.className = 'mb-4 p-3 rounded-lg text-sm font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300 block';
+            alertBox.innerHTML = `✓ Issue <b>${data.issue_key}</b> created successfully! Redirecting...`;
+            setTimeout(() => {
+                window.location.href = `/issue/${data.issue_id}`;
+            }, 500);
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-check"></i> Submit Issue`;
+            alertBox.className = 'mb-4 p-3 rounded-lg text-sm font-semibold bg-rose-100 text-rose-800 border border-rose-300 block';
+            alertBox.innerText = 'Error: ' + (data.detail || JSON.stringify(data));
+        }
+    } catch (err) {
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-check"></i> Submit Issue`;
+        alertBox.className = 'mb-4 p-3 rounded-lg text-sm font-semibold bg-rose-100 text-rose-800 border border-rose-300 block';
+        alertBox.innerText = 'Network error: ' + err;
+    }
+});
+</script>
+{% endblock %}

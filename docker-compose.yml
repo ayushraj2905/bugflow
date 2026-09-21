@@ -1,0 +1,26 @@
+﻿version: '3.8'
+
+services:
+  bugflow-app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://bugflow_user:bugflow_pass@postgres:5432/bugflow_db
+      - SECRET_KEY=bugflow-super-secret-key-2026
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=bugflow_user
+      - POSTGRES_PASSWORD=bugflow_pass
+      - POSTGRES_DB=bugflow_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

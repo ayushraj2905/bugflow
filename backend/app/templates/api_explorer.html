@@ -1,0 +1,168 @@
+﻿{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Milestone 3 Mockup Header -->
+    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-100 pb-4 gap-4">
+            <div>
+                <span class="text-xs bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded uppercase">Milestone 3 (Weeks 5–6)</span>
+                <h1 class="text-2xl font-black text-slate-900 mt-1 flex items-center gap-2">
+                    <i class="fa-solid fa-terminal text-sky-600"></i> BugFlow: Analytics & APIs Console
+                </h1>
+                <p class="text-xs text-slate-500">Live REST API endpoints, GitHub commit webhooks, and automated CI/CD synchronization</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    <i class="fa-solid fa-satellite-dish mr-1.5 text-emerald-600 animate-pulse"></i> Security Status: Configure CI/CD, Synchronization Active [cite: 3]
+                </span>
+            </div>
+        </div>
+
+        <!-- Notification Service Status (Mockup Milestone 3: Page 6) -->
+        <div class="bg-slate-50 p-4 rounded-lg border border-slate-200 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 text-xs">
+            <div>
+                <span class="font-bold text-slate-700 block mb-0.5">Notification Service Status:</span>
+                <span class="text-emerald-700 font-semibold"><i class="fa-solid fa-circle text-[8px] mr-1 text-emerald-500"></i> Alerts: Running, Last Run 15 minutes ago [cite: 3]</span>
+            </div>
+            <div>
+                <span class="font-bold text-slate-700 block mb-0.5">REST API Response Latency:</span>
+                <span class="font-mono text-sky-700 font-bold">145ms (&lt; 300ms 95th percentile SLA)</span>
+            </div>
+            <div>
+                <span class="font-bold text-slate-700 block mb-0.5">Git Webhook Synchronization:</span>
+                <span class="text-indigo-700 font-semibold"><i class="fa-brands fa-github"></i> Active (Parsing Fixes #BF-001)</span>
+            </div>
+        </div>
+
+        <!-- REST API Explorer (Mockup Milestone 3) -->
+        <div class="border border-slate-200 rounded-lg overflow-hidden">
+            <div class="bg-slate-800 text-slate-200 px-4 py-3 font-mono font-bold text-xs uppercase flex justify-between items-center">
+                <span><i class="fa-solid fa-network-wired text-sky-400"></i> REST API Explorer [cite: 3]</span>
+                <a href="/docs" target="_blank" class="text-sky-400 hover:text-sky-300 underline lowercase font-sans">Open Swagger OpenAPI Docs &rarr;</a>
+            </div>
+            <div class="divide-y divide-slate-200 font-mono text-xs bg-slate-50">
+                <!-- Endpoint 1 -->
+                <div class="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-white transition">
+                    <div class="flex items-center gap-3">
+                        <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">GET</span>
+                        <span class="text-slate-800 font-bold">/api/v1/bugs/</span>
+                        <span class="text-slate-400 text-[11px]">(Retrieve bug list) [cite: 3]</span>
+                    </div>
+                    <button onclick="testApi('/api/v1/bugs/')" class="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded font-sans text-xs font-semibold">Test</button>
+                </div>
+
+                <!-- Endpoint 2 -->
+                <div class="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-white transition">
+                    <div class="flex items-center gap-3">
+                        <span class="px-2 py-0.5 rounded bg-sky-100 text-sky-800 font-bold">POST</span>
+                        <span class="text-slate-800 font-bold">/api/v1/projects/</span>
+                        <span class="text-slate-400 text-[11px]">(Create new project) [cite: 3]</span>
+                    </div>
+                    <button onclick="testApi('/api/v1/projects/')" class="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded font-sans text-xs font-semibold">Test</button>
+                </div>
+
+                <!-- Endpoint 3 -->
+                <div class="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-white transition">
+                    <div class="flex items-center gap-3">
+                        <span class="px-2 py-0.5 rounded bg-purple-100 text-purple-800 font-bold">GET</span>
+                        <span class="text-slate-800 font-bold">/api/v1/sprints/</span>
+                        <span class="text-slate-400 text-[11px]">(Sprint velocity & backlog metrics)</span>
+                    </div>
+                    <button onclick="testApi('/api/v1/sprints/')" class="px-3 py-1 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded font-sans text-xs font-semibold">Test</button>
+                </div>
+
+                <!-- Endpoint 4: GitHub Webhook -->
+                <div class="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-white transition">
+                    <div class="flex items-center gap-3">
+                        <span class="px-2 py-0.5 rounded bg-amber-100 text-amber-800 font-bold">POST</span>
+                        <span class="text-slate-800 font-bold">/api/v1/webhooks/github</span>
+                        <span class="text-slate-400 text-[11px]">(Sync commit messages & trigger code review)</span>
+                    </div>
+                    <button onclick="simulateGitHook()" class="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded font-sans text-xs font-semibold">Simulate Git Push</button>
+                </div>
+
+                <!-- Endpoint 5: CI/CD Pipeline Webhook -->
+                <div class="p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 hover:bg-white transition">
+                    <div class="flex items-center gap-3">
+                        <span class="px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-bold">POST</span>
+                        <span class="text-slate-800 font-bold">/api/v1/webhooks/cicd</span>
+                        <span class="text-slate-400 text-[11px]">(Auto-file defect on build failure)</span>
+                    </div>
+                    <button onclick="simulateCICDFailure()" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded font-sans text-xs font-semibold">Simulate Pipeline Fail</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live API Response Output -->
+        <div class="bg-slate-900 rounded-lg p-4 text-emerald-400 font-mono text-xs overflow-x-auto space-y-1">
+            <div class="text-slate-400 font-sans font-bold flex justify-between">
+                <span>Interactive Console Output:</span>
+                <span id="responseStatus" class="text-emerald-400">200 OK</span>
+            </div>
+            <pre id="apiOutput" class="max-h-64 overflow-y-auto whitespace-pre-wrap">{ "status": "BugFlow REST API Active", "version": "2.4.0", "ready": true }</pre>
+        </div>
+    </div>
+</div>
+
+<script>
+async function testApi(endpoint) {
+    try {
+        const res = await fetch(endpoint);
+        const data = await res.json();
+        document.getElementById('responseStatus').innerText = `${res.status} ${res.statusText}`;
+        document.getElementById('apiOutput').innerText = JSON.stringify(data, null, 2);
+    } catch (e) {
+        document.getElementById('apiOutput').innerText = 'Error: ' + e;
+    }
+}
+
+async function simulateGitHook() {
+    const payload = {
+        ref: 'refs/heads/main',
+        commits: [
+            {
+                id: '9f8e7d6c5b4a',
+                message: 'Fixes BF-001: Corrected CSS overflow on navigation container',
+                author: { name: 'Alex Johnson (Senior Dev)' }
+            }
+        ]
+    };
+    try {
+        const res = await fetch('/api/v1/webhooks/github', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        document.getElementById('responseStatus').innerText = `${res.status} ${res.statusText}`;
+        document.getElementById('apiOutput').innerText = JSON.stringify(data, null, 2);
+    } catch (e) {
+        document.getElementById('apiOutput').innerText = 'Error: ' + e;
+    }
+}
+
+async function simulateCICDFailure() {
+    const payload = {
+        pipeline_id: 'gh-actions-run-9842',
+        project_key: 'BF',
+        status: 'FAILED',
+        error_log: 'AssertionError: Expected status 200 but received 500 at test_auth_token_refresh',
+        failed_stage: 'Integration-Test-Suite',
+        branch: 'staging'
+    };
+    try {
+        const res = await fetch('/api/v1/webhooks/cicd', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        document.getElementById('responseStatus').innerText = `${res.status} ${res.statusText}`;
+        document.getElementById('apiOutput').innerText = JSON.stringify(data, null, 2);
+    } catch (e) {
+        document.getElementById('apiOutput').innerText = 'Error: ' + e;
+    }
+}
+</script>
+{% endblock %}

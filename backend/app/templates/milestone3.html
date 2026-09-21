@@ -1,0 +1,364 @@
+﻿{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Service Banner & Exporters (Requirement 1) -->
+    <div class="bg-gradient-to-r from-slate-900 via-sky-950 to-indigo-950 text-white p-6 rounded-2xl shadow-md border border-slate-700/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/20 border border-sky-400/30 text-sky-300 text-xs font-bold uppercase tracking-wider mb-2">
+                <i class="fa-solid fa-chart-pie"></i> Milestone 3: Quality Analytics, APIs & CI/CD Automation
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-black tracking-tight flex items-center gap-2.5">
+                <i class="fa-solid fa-chart-line text-emerald-400"></i> Software Quality Scorecard & Telemetry
+            </h1>
+            <div class="flex flex-wrap items-center gap-4 text-xs text-slate-300 mt-2">
+                <span class="flex items-center gap-1.5 bg-emerald-500/10 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Notification Service: <b>Running</b>
+                </span>
+                <span class="flex items-center gap-1.5 bg-sky-500/10 text-sky-300 px-2.5 py-1 rounded-full border border-sky-500/20">
+                    <i class="fa-solid fa-code-commit text-sky-400"></i> Security Status: <b>CI/CD Sync Active</b>
+                </span>
+            </div>
+        </div>
+
+        <!-- One-Click PDF & CSV Exporters (Requirement 4) -->
+        <div class="flex flex-wrap items-center gap-3">
+            <a href="/api/v1/export/pdf" download class="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold shadow-lg transition flex items-center gap-2 border border-rose-500/50">
+                <i class="fa-solid fa-file-pdf text-sm"></i> Export PDF Report
+            </a>
+            <a href="/api/v1/export/csv" download class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-lg transition flex items-center gap-2 border border-emerald-500/50">
+                <i class="fa-solid fa-file-csv text-sm"></i> Export CSV
+            </a>
+        </div>
+    </div>
+
+    <!-- 4 Core Quality Metrics Scorecards (Part 2 Requirement) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- 1. Fix Rate Percentage -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
+            <div class="flex justify-between items-start">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Fix Rate %</span>
+                <span class="p-2 rounded-lg bg-emerald-50 text-emerald-600"><i class="fa-solid fa-shield-check text-base"></i></span>
+            </div>
+            <div class="flex items-baseline gap-2">
+                <span class="text-3xl font-black text-slate-900 font-mono">{{ metrics.fix_rate_percentage }}%</span>
+                <span class="text-xs font-bold text-emerald-600">Target &ge; 85%</span>
+            </div>
+            <p class="text-[11px] text-slate-400 font-mono">Formula: (Resolved + Closed) / Total * 100</p>
+        </div>
+
+        <!-- 2. Mean Time to Resolution (MTTR) -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
+            <div class="flex justify-between items-start">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">MTTR (Avg Fix Time)</span>
+                <span class="p-2 rounded-lg bg-sky-50 text-sky-600"><i class="fa-solid fa-stopwatch text-base"></i></span>
+            </div>
+            <div class="flex items-baseline gap-2">
+                <span class="text-3xl font-black text-slate-900 font-mono">{{ metrics.mean_time_to_resolution_days }} <span class="text-lg font-sans">days</span></span>
+                <span class="text-xs font-bold text-sky-600">{{ metrics.mean_time_to_resolution_hours }} hrs</span>
+            </div>
+            <p class="text-[11px] text-slate-400 font-mono">Average created_at to resolution delta</p>
+        </div>
+
+        <!-- 3. Defect Leakage Rate -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
+            <div class="flex justify-between items-start">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Defect Leakage Rate</span>
+                <span class="p-2 rounded-lg bg-amber-50 text-amber-600"><i class="fa-solid fa-triangle-exclamation text-base"></i></span>
+            </div>
+            <div class="flex items-baseline gap-2">
+                <span class="text-3xl font-black text-slate-900 font-mono">{{ metrics.defect_leakage_rate_percentage }}%</span>
+                <span class="text-xs font-bold text-amber-600">Prod Escapes</span>
+            </div>
+            <p class="text-[11px] text-slate-400 font-mono">Formula: Prod Bugs / Total Bugs * 100</p>
+        </div>
+
+        <!-- 4. Backlog Health Score -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-2">
+            <div class="flex justify-between items-start">
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Backlog Health Score</span>
+                <span class="p-2 rounded-lg bg-indigo-50 text-indigo-600"><i class="fa-solid fa-heart-pulse text-base"></i></span>
+            </div>
+            <div class="flex items-baseline gap-2">
+                <span class="text-3xl font-black text-indigo-600 font-mono">{{ metrics.backlog_health_score }} <span class="text-lg font-sans text-slate-400">/ 100</span></span>
+                <span class="text-xs font-bold text-indigo-700">Release Ready</span>
+            </div>
+            <p class="text-[11px] text-slate-400 font-mono">Open critical bugs deduct points</p>
+        </div>
+    </div>
+
+    <!-- Webhook Simulator & REST API Explorer (Requirements 2 & 3) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Webhook Simulator Card -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-robot text-purple-600"></i> Part 1: CI/CD Webhook Simulator 🤖
+                </h2>
+                <span class="text-[11px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded font-bold border border-purple-200">
+                    POST /api/v1/webhooks/git
+                </span>
+            </div>
+
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Click this button to simulate a developer pushing a Git commit message. The backend bot will search for <span class="font-mono text-purple-700 font-bold">"fixes #2"</span> and <b>automatically transition Bug #2 to QA_VERIFICATION</b> with audit logging!
+            </p>
+
+            <div class="p-3 bg-slate-900 text-slate-100 rounded-lg text-xs font-mono">
+                <div class="text-slate-400">// Sample Git Payload</div>
+                <div class="text-emerald-400">"Merge PR #45: fixes #2 login password crash"</div>
+                <div class="text-slate-400 text-[10px] mt-1">Commit: #a7f8c92 • Author: Sarah Connor</div>
+            </div>
+
+            <button onclick="triggerGitWebhookSim()" id="simWebhookBtn" class="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-md transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-play"></i> Simulate Git Commit (fixes #2)
+            </button>
+
+            <div id="webhookResultToast" class="hidden p-3 rounded-lg text-xs space-y-1"></div>
+        </div>
+
+        <!-- Live REST API Explorer Card -->
+        <div class="lg:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-terminal text-sky-600"></i> Live REST API Explorer Console
+                </h2>
+                <span class="text-[11px] bg-sky-50 text-sky-700 px-2 py-0.5 rounded font-bold border border-sky-200">
+                    Interactive API Tester
+                </span>
+            </div>
+
+            <!-- Endpoint Selector Tabs -->
+            <div class="flex flex-wrap gap-2 text-xs">
+                <button onclick="selectApiTest('metrics')" id="tab_metrics" class="px-3 py-1.5 rounded-lg font-bold bg-sky-600 text-white shadow">
+                    GET /api/v1/analytics/quality-metrics
+                </button>
+                <button onclick="selectApiTest('trends')" id="tab_trends" class="px-3 py-1.5 rounded-lg font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                    GET /api/v1/analytics/defect-trends
+                </button>
+                <button onclick="selectApiTest('bugs')" id="tab_bugs" class="px-3 py-1.5 rounded-lg font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                    GET /api/v1/bugs/
+                </button>
+                <button onclick="selectApiTest('charts')" id="tab_charts" class="px-3 py-1.5 rounded-lg font-bold bg-slate-100 text-slate-700 hover:bg-slate-200">
+                    GET /api/v1/analytics/plotly-charts
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <span id="apiMethodBadge" class="px-2 py-1 bg-emerald-100 text-emerald-800 font-mono font-bold text-xs rounded">GET</span>
+                <input type="text" id="apiEndpointInput" readonly value="/api/v1/analytics/quality-metrics" class="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-lg text-xs font-mono text-slate-700">
+                <button onclick="executeApiExplorer()" id="apiSendBtn" class="px-4 py-1.5 bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs rounded-lg shadow flex items-center gap-1.5">
+                    <i class="fa-solid fa-paper-plane"></i> Send
+                </button>
+            </div>
+
+            <!-- JSON Output Screen -->
+            <div class="relative">
+                <div class="flex justify-between items-center text-[11px] text-slate-400 bg-slate-900 px-3 py-1.5 rounded-t-lg font-mono">
+                    <span>Response JSON Body:</span>
+                    <span id="apiStatusBadge" class="text-emerald-400 font-bold">200 OK</span>
+                </div>
+                <pre id="apiOutputScreen" class="text-xs font-mono bg-slate-950 text-emerald-400 p-4 rounded-b-lg overflow-x-auto max-h-56 leading-relaxed">Loading JSON response...</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- Part 3: Interactive Plotly Visualizations (Part 3 Requirement) -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- 1. 14-Day Defect Trends Line Chart (Red Line vs Green Line) -->
+        <div class="lg:col-span-2 bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line text-rose-500"></i> Defect Ingestion vs Resolution Trend (Last 14 Days)
+                </h2>
+                <div class="flex items-center gap-3 text-xs font-semibold">
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span> New Bugs (Red)</span>
+                    <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Resolved Bugs (Green)</span>
+                </div>
+            </div>
+            <div id="defectTrendChart" style="height: 320px;" class="w-full"></div>
+        </div>
+
+        <!-- 2. Severity Donut Chart -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie text-amber-500"></i> Severity Distribution
+                </h2>
+                <span class="text-xs text-slate-400">All Active Defect Tiers</span>
+            </div>
+            <div id="severityDonutChart" style="height: 320px;" class="w-full"></div>
+        </div>
+    </div>
+
+    <!-- 3. Workflow Pipeline Bar Chart -->
+    <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-chart-simple text-indigo-600"></i> Workflow Pipeline Volume by Stage
+            </h2>
+            <span class="text-xs bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-bold">7-Stage Enforcement</span>
+        </div>
+        <div id="pipelineBarChart" style="height: 280px;" class="w-full"></div>
+    </div>
+</div>
+
+<script>
+// 1. Fetch Plotly Charts and Render
+async function initPlotlyCharts() {
+    try {
+        const res = await fetch('/api/v1/analytics/plotly-charts');
+        const data = await res.json();
+
+        // Chart 1: 14-Day Defect Trends Line Chart (Red Line vs Green Line)
+        const trends = data.defect_trends;
+        const traceReported = {
+            x: trends.dates,
+            y: trends.created_counts,
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: 'Reported Defects',
+            line: {color: '#ef4444', width: 3},
+            marker: {size: 6, color: '#ef4444'}
+        };
+        const traceResolved = {
+            x: trends.dates,
+            y: trends.resolved_counts,
+            type: 'scatter',
+            mode: 'lines+markers',
+            name: 'Resolved Defects',
+            line: {color: '#10b981', width: 3},
+            marker: {size: 6, color: '#10b981'}
+        };
+        const trendLayout = {
+            margin: {l: 40, r: 20, t: 20, b: 40},
+            hovermode: 'x unified',
+            legend: {orientation: 'h', y: -0.2},
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent',
+            xaxis: {gridcolor: '#f1f5f9'},
+            yaxis: {gridcolor: '#f1f5f9', title: 'Defect Count'}
+        };
+        Plotly.newPlot('defectTrendChart', [traceReported, traceResolved], trendLayout, {responsive: true, displayModeBar: false});
+
+        // Chart 2: Severity Donut Chart
+        const sev = data.severity_donut;
+        const traceDonut = {
+            labels: sev.labels,
+            values: sev.values,
+            type: 'pie',
+            hole: 0.55,
+            marker: {colors: sev.colors},
+            textinfo: 'label+percent',
+            hoverinfo: 'label+value+percent'
+        };
+        const donutLayout = {
+            margin: {l: 20, r: 20, t: 20, b: 20},
+            showlegend: false,
+            paper_bgcolor: 'transparent'
+        };
+        Plotly.newPlot('severityDonutChart', [traceDonut], donutLayout, {responsive: true, displayModeBar: false});
+
+        // Chart 3: Pipeline Bar Chart
+        const pipe = data.pipeline_bar;
+        const traceBar = {
+            x: pipe.stages,
+            y: pipe.counts,
+            type: 'bar',
+            marker: {color: pipe.colors}
+        };
+        const barLayout = {
+            margin: {l: 40, r: 20, t: 20, b: 60},
+            paper_bgcolor: 'transparent',
+            plot_bgcolor: 'transparent',
+            xaxis: {gridcolor: '#f1f5f9', tickangle: -20},
+            yaxis: {gridcolor: '#f1f5f9', title: 'Number of Bugs'}
+        };
+        Plotly.newPlot('pipelineBarChart', [traceBar], barLayout, {responsive: true, displayModeBar: false});
+
+    } catch (err) {
+        console.error('Error rendering Plotly charts:', err);
+    }
+}
+
+// 2. Webhook Simulation Trigger
+async function triggerGitWebhookSim() {
+    const btn = document.getElementById('simWebhookBtn');
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Processing Webhook...`;
+
+    try {
+        const payload = {
+            message: "Merge PR #45: fixes #2 login password crash",
+            commit_id: "a7f8c92",
+            author: "Sarah Connor (Developer)"
+        };
+
+        const res = await fetch('/api/v1/webhooks/git', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        const toast = document.getElementById('webhookResultToast');
+        toast.className = 'p-3 rounded-lg text-xs space-y-1 bg-emerald-50 border border-emerald-300 text-emerald-900 block';
+        toast.innerHTML = `
+            <div class="font-bold flex items-center gap-1.5 text-emerald-800">
+                <i class="fa-solid fa-circle-check"></i> Webhook Executed Successfully!
+            </div>
+            <div>${data.message}</div>
+            <div class="text-[10px] text-emerald-700 font-mono">Bug #2 status auto-advanced to <b>QA_VERIFICATION</b>.</div>
+        `;
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-check"></i> Executed! Click to Trigger Again`;
+    } catch(err) {
+        alert('Webhook simulation failed: ' + err);
+        btn.disabled = false;
+        btn.innerHTML = `<i class="fa-solid fa-play"></i> Simulate Git Commit (fixes #2)`;
+    }
+}
+
+// 3. REST API Explorer Handling
+let currentApiUrl = '/api/v1/analytics/quality-metrics';
+
+function selectApiTest(type) {
+    const tabs = ['metrics', 'trends', 'bugs', 'charts'];
+    tabs.forEach(t => {
+        const el = document.getElementById(`tab_${t}`);
+        if (t === type) {
+            el.className = 'px-3 py-1.5 rounded-lg font-bold bg-sky-600 text-white shadow';
+        } else {
+            el.className = 'px-3 py-1.5 rounded-lg font-bold bg-slate-100 text-slate-700 hover:bg-slate-200';
+        }
+    });
+
+    const input = document.getElementById('apiEndpointInput');
+    if (type === 'metrics') currentApiUrl = '/api/v1/analytics/quality-metrics';
+    if (type === 'trends') currentApiUrl = '/api/v1/analytics/defect-trends';
+    if (type === 'bugs') currentApiUrl = '/api/v1/bugs/';
+    if (type === 'charts') currentApiUrl = '/api/v1/analytics/plotly-charts';
+    input.value = currentApiUrl;
+    executeApiExplorer();
+}
+
+async function executeApiExplorer() {
+    const screen = document.getElementById('apiOutputScreen');
+    screen.innerText = 'Fetching live API response...';
+    try {
+        const res = await fetch(currentApiUrl);
+        const json = await res.json();
+        document.getElementById('apiStatusBadge').innerText = `${res.status} ${res.statusText || 'OK'}`;
+        screen.innerText = JSON.stringify(json, null, 2);
+    } catch(err) {
+        screen.innerText = 'Error fetching API: ' + err;
+    }
+}
+
+// Initial load
+document.addEventListener('DOMContentLoaded', () => {
+    initPlotlyCharts();
+    executeApiExplorer();
+});
+</script>
+{% endblock %}

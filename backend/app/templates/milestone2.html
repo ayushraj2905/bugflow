@@ -1,0 +1,498 @@
+﻿{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header Banner -->
+    <div class="bg-gradient-to-r from-indigo-900 via-sky-900 to-slate-900 text-white p-6 rounded-2xl shadow-md border border-indigo-700/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 text-xs font-bold uppercase tracking-wider mb-2">
+                <i class="fa-solid fa-code-branch"></i> Milestone 2: Workflow, Collaboration & Smart Triage
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-black tracking-tight flex items-center gap-2.5">
+                <i class="fa-solid fa-gears text-sky-400"></i> Workflow Automation & Collaboration Engine
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
+                Smart Priority Math (<span class="font-mono text-amber-300">Severity × Category Urgency</span>), Workload-Aware Developer Matching, Sprint Backlog Management, and Real-Time Audit Tracking.
+            </p>
+        </div>
+        <div class="flex flex-wrap items-center gap-3">
+            <button onclick="window.print()" class="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold border border-slate-600 shadow transition flex items-center gap-2">
+                <i class="fa-solid fa-file-pdf text-rose-400"></i> Generate PDF Report [cite: 3]
+            </button>
+            <a href="/new-issue" class="px-4 py-2.5 bg-sky-500 hover:bg-sky-400 text-slate-900 rounded-xl text-xs font-black shadow transition flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i> New Defect
+            </a>
+        </div>
+    </div>
+
+    <!-- Live Interactive Smart Priority Calculator & Developer Matcher Widgets -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- 1. Smart Priority Calculator Card (Part 1 Requirement) -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-calculator text-amber-500"></i> Part 1: Smart Priority Calculator 🧮
+                </h2>
+                <span class="text-[11px] font-mono bg-amber-50 text-amber-800 px-2 py-0.5 rounded border border-amber-200 font-bold">
+                    Score = Severity × Urgency
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">Severity (Weight):</label>
+                    <select id="calcSeverity" onchange="recalcPriorityDemo()" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        <option value="CRITICAL" data-weight="4">CRITICAL (4 points)</option>
+                        <option value="MAJOR" data-weight="3">MAJOR (3 points)</option>
+                        <option value="MINOR" data-weight="2" selected>MINOR (2 points)</option>
+                        <option value="TRIVIAL" data-weight="1">TRIVIAL / LOW (1 point)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-600 mb-1">Category (Urgency Weight):</label>
+                    <select id="calcCategory" onchange="recalcPriorityDemo()" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                        <option value="Authentication & Security" data-urgency="3" data-label="High Urgency (3 points)">Authentication & Security (High: 3)</option>
+                        <option value="Database & Performance" data-urgency="3" data-label="High Urgency (3 points)">Database & Performance (High: 3)</option>
+                        <option value="API & Integrations" data-urgency="2" data-label="Medium Urgency (2 points)" selected>API & Integrations (Med: 2)</option>
+                        <option value="CI/CD & DevOps" data-urgency="2" data-label="Medium Urgency (2 points)">CI/CD & DevOps (Med: 2)</option>
+                        <option value="UI/UX & Frontend" data-urgency="1" data-label="Low Urgency (1 point)">UI/UX & Frontend (Low: 1)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Calculation Output Display -->
+            <div class="p-3.5 bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-xl space-y-2">
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-300 font-medium">Mathematical Formula:</span>
+                    <span id="demoFormulaText" class="font-mono text-amber-300 font-bold">2 (Severity) × 2 (Med Urgency) = 4.0</span>
+                </div>
+                <div class="flex justify-between items-center pt-2 border-t border-slate-800">
+                    <div>
+                        <span class="text-[11px] text-slate-400 block">Calculated Result:</span>
+                        <span id="demoPriorityBadge" class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-black bg-amber-400 text-slate-900">
+                            MEDIUM PRIORITY
+                        </span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[11px] text-slate-400 block">Priority Score:</span>
+                        <span id="demoScoreNumber" class="text-2xl font-black font-mono text-emerald-400">4.0</span>
+                    </div>
+                </div>
+                <div id="demoActionBadge" class="text-[11px] text-slate-300 italic pt-1">
+                    Rule: Normal sprint cycle
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Smart Developer Matcher Card (Part 2 Requirement) -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-user-astronaut text-indigo-600"></i> Part 2: Smart Developer Matcher 🧑‍💻
+                </h2>
+                <span class="text-[11px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded border border-indigo-200 font-bold">
+                    Skills + Workload Check
+                </span>
+            </div>
+
+            <div class="space-y-2 text-xs">
+                <label class="block font-bold text-slate-600">Live Workload & Skill Availability:</label>
+                <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    {% for dev in developers %}
+                    <div class="p-2.5 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200 flex justify-between items-center transition">
+                        <div>
+                            <div class="font-bold text-slate-900 flex items-center gap-1.5">
+                                <i class="fa-solid fa-circle-user text-slate-400"></i> {{ dev.full_name }}
+                                <span class="text-[10px] bg-sky-100 text-sky-800 font-semibold px-1.5 py-0.2 rounded">{{ dev.proficiency }}</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">{{ dev.core_skills }}</div>
+                        </div>
+                        <div class="text-right">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold {% if dev.active_tasks > 2 %}bg-amber-100 text-amber-800{% else %}bg-emerald-100 text-emerald-800{% endif %}">
+                                {{ dev.active_tasks }} active task{% if dev.active_tasks != 1 %}s{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Bugs Workflow State Transition Cards (Requirement 1: REPORTED ➔ TRIAGED ➔ IN_PROGRESS ➔ QA_VERIFICATION ➔ RESOLVED ➔ CLOSED) -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
+            <div>
+                <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-arrows-spin text-sky-600"></i> 1. Active Bugs Workflow State Controller
+                </h2>
+                <p class="text-xs text-slate-500">Live dropdowns to transition active bugs between: REPORTED ➔ TRIAGED ➔ IN_PROGRESS ➔ QA_VERIFICATION ➔ RESOLVED ➔ CLOSED</p>
+            </div>
+            <span class="text-xs bg-sky-50 text-sky-700 font-bold px-2.5 py-1 rounded border border-sky-200">
+                100% Audit Tracked
+            </span>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-slate-200 text-sm">
+                <thead class="bg-slate-50 text-slate-600 font-bold text-xs uppercase">
+                    <tr>
+                        <th class="px-4 py-3 text-left">Key</th>
+                        <th class="px-4 py-3 text-left">Issue Summary</th>
+                        <th class="px-4 py-3 text-left">Priority Score</th>
+                        <th class="px-4 py-3 text-left">Assignee</th>
+                        <th class="px-4 py-3 text-left">Workflow State Selector</th>
+                        <th class="px-4 py-3 text-right">Details</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 bg-white">
+                    {% for issue in active_issues %}
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="px-4 py-3 font-mono font-bold text-sky-700">
+                            <a href="/issue/{{ issue.id }}" class="hover:underline">{{ issue.issue_key }}</a>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="font-semibold text-slate-800">{{ issue.title }}</div>
+                            <div class="text-xs text-slate-400">
+                                <span class="badge-{{ issue.severity.lower() }} px-1.5 py-0.2 rounded font-bold">{{ issue.severity }}</span>
+                                <span class="ml-1">• {{ issue.affected_module }}</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-mono font-black text-xs text-slate-800 bg-slate-100 px-2 py-0.5 rounded border">
+                                    {{ issue.priority_score or 6.0 }}
+                                </span>
+                                <span class="font-bold text-[11px] {% if issue.priority == 'URGENT' %}text-rose-600{% elif issue.priority == 'HIGH' %}text-orange-600{% elif issue.priority == 'MEDIUM' %}text-amber-600{% else %}text-slate-600{% endif %}">
+                                    {{ issue.priority }}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-slate-600 text-xs">
+                            <div class="flex items-center gap-1">
+                                <i class="fa-solid fa-user-circle text-slate-400"></i>
+                                <span>{{ issue.assignee.full_name if issue.assignee else 'Unassigned' }}</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <!-- Direct Stage Selector Dropdown -->
+                            <select onchange="updateBugStage({{ issue.id }}, this.value)" class="text-xs font-bold px-2.5 py-1.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-sky-500 stage-{{ (issue.dev_stage or 'REPORTED').lower() }}">
+                                <option value="REPORTED" {% if issue.dev_stage == 'REPORTED' %}selected{% endif %}>REPORTED</option>
+                                <option value="TRIAGED" {% if issue.dev_stage == 'TRIAGED' %}selected{% endif %}>TRIAGED</option>
+                                <option value="IN_PROGRESS" {% if issue.dev_stage in ['IN_PROGRESS', 'ASSIGNED'] %}selected{% endif %}>IN_PROGRESS</option>
+                                <option value="QA_VERIFICATION" {% if issue.dev_stage in ['QA_VERIFICATION', 'QA_TESTING', 'CODE_REVIEW'] %}selected{% endif %}>QA_VERIFICATION</option>
+                                <option value="RESOLVED" {% if issue.dev_stage == 'RESOLVED' %}selected{% endif %}>RESOLVED</option>
+                                <option value="CLOSED" {% if issue.dev_stage == 'CLOSED' %}selected{% endif %}>CLOSED</option>
+                            </select>
+                        </td>
+                        <td class="px-4 py-3 text-right">
+                            <a href="/issue/{{ issue.id }}" class="px-2.5 py-1 bg-sky-50 hover:bg-sky-100 text-sky-700 border border-sky-200 rounded text-xs font-semibold">
+                                View &rarr;
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Live Activity Stream Feed (Requirement 2) -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-3">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+            <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-satellite-dish text-emerald-500 animate-pulse"></i> 2. Live Activity Stream & Audit Feed [cite: 3]
+            </h2>
+            <span class="text-xs text-slate-400">Real-time audit log recording</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-1">
+            {% for act in recent_activities %}
+            <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1 text-xs">
+                <div class="flex justify-between items-center text-[10px] text-slate-400">
+                    <span class="font-bold text-sky-700 uppercase">{{ act.action }}</span>
+                    <span>{{ act.timestamp.strftime('%H:%M • %b %d') }}</span>
+                </div>
+                <div class="font-medium text-slate-800">{{ act.details }}</div>
+                <div class="text-[10px] text-slate-500 flex items-center gap-1 pt-1">
+                    <i class="fa-solid fa-user-astronaut text-slate-400"></i>
+                    <span>{{ act.user.full_name if act.user else 'System Agent' }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Sprint Board & Backlog Side-by-Side Columns (Requirement 3) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Left Column: Active Sprints -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-person-running text-indigo-600"></i> Active Sprints (2-Week Cycles)
+                </h2>
+                <button onclick="openCreateSprintModal()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold shadow flex items-center gap-1">
+                    <i class="fa-solid fa-plus"></i> New Sprint
+                </button>
+            </div>
+
+            <div class="space-y-3.5">
+                {% for s in sprints %}
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="font-black text-sm text-slate-900 flex items-center gap-2">
+                                {{ s.sprint_name }}
+                                <span class="text-[10px] px-2 py-0.5 rounded font-bold {% if s.status == 'COMPLETED' %}bg-emerald-100 text-emerald-800{% else %}bg-sky-100 text-sky-800{% endif %}">
+                                    {{ s.status }}
+                                </span>
+                            </div>
+                            <div class="text-xs text-slate-500 mt-0.5">{{ s.goal }}</div>
+                            <div class="text-[11px] text-slate-400 mt-1">
+                                <i class="fa-regular fa-calendar"></i> {{ s.start_date }} to {{ s.end_date }}
+                            </div>
+                        </div>
+                        {% if s.status != 'COMPLETED' %}
+                        <button onclick="completeSprint({{ s.id }})" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md text-xs font-bold shadow">
+                            Complete Sprint &check;
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div>
+                        <div class="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                            <span>Completion Progress</span>
+                            <span>{{ s.progress_percent }}% ({{ s.closed_items }}/{{ s.total_items }} issues)</span>
+                        </div>
+                        <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                            <div class="bg-gradient-to-r from-sky-500 to-emerald-500 h-2.5 rounded-full" style="width: {{ s.progress_percent }}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between text-xs pt-2 border-t border-slate-200/60 text-slate-500">
+                        <span>Planned Velocity: <b>{{ s.planned_velocity }} pts</b></span>
+                        <span>Delivered Velocity: <b class="text-emerald-700">{{ s.actual_velocity }} pts</b></span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Right Column: Product Backlog (Unassigned Bugs Waiting for Work) -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 space-y-4">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+                <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-inbox text-amber-500"></i> Product Backlog (Waiting for Sprint)
+                </h2>
+                <span class="text-xs bg-amber-100 text-amber-800 font-bold px-2 py-0.5 rounded-full">
+                    {{ backlog_issues|length }} Backlog Items
+                </span>
+            </div>
+
+            <div class="space-y-2.5 max-h-96 overflow-y-auto pr-1" id="backlogList">
+                {% for item in backlog_issues %}
+                <div class="p-3 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 transition">
+                    <div class="space-y-0.5">
+                        <div class="flex items-center gap-2">
+                            <span class="font-mono font-bold text-sky-700 text-xs">{{ item.issue_key }}</span>
+                            <span class="badge-{{ item.severity.lower() }} px-1.5 py-0.2 rounded text-[10px] font-bold">{{ item.severity }}</span>
+                            <span class="text-[10px] font-mono bg-slate-100 px-1 rounded text-slate-600 font-bold">{{ item.priority }} (Score: {{ item.priority_score }})</span>
+                        </div>
+                        <div class="font-semibold text-xs text-slate-900">{{ item.title }}</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <select id="sprintSelect_{{ item.id }}" class="text-xs px-2 py-1 bg-white border border-slate-300 rounded font-medium">
+                            {% for s in sprints %}
+                            {% if s.status != 'COMPLETED' %}
+                            <option value="{{ s.id }}">{{ s.sprint_name }}</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                        <button onclick="addBacklogToSprint({{ item.id }})" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded text-xs font-bold shadow flex items-center gap-1">
+                            <i class="fa-solid fa-arrow-left"></i> + Add to Sprint
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Sprint Modal -->
+<div id="createSprintModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-200">
+        <div class="flex justify-between items-center border-b pb-3">
+            <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-person-running text-indigo-600"></i> Create New Sprint (2-Week Cycle)
+            </h3>
+            <button onclick="closeCreateSprintModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+        </div>
+        <form id="createSprintForm" class="space-y-3 text-xs">
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Sprint Name *</label>
+                <input type="text" id="modalSprintName" required placeholder="e.g. Sprint 2 - Workflow & CI/CD" class="w-full px-3 py-2 bg-slate-50 border rounded-lg">
+            </div>
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Sprint Goal</label>
+                <input type="text" id="modalSprintGoal" placeholder="e.g. Finish Milestone 2 deliverables and collaboration" class="w-full px-3 py-2 bg-slate-50 border rounded-lg">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Start Date *</label>
+                    <input type="date" id="modalStartDate" required class="w-full px-3 py-2 bg-slate-50 border rounded-lg">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">End Date *</label>
+                    <input type="date" id="modalEndDate" required class="w-full px-3 py-2 bg-slate-50 border rounded-lg">
+                </div>
+            </div>
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Planned Velocity (Story Points / Issues)</label>
+                <input type="number" id="modalVelocity" value="30" class="w-full px-3 py-2 bg-slate-50 border rounded-lg">
+            </div>
+            <div class="pt-3 border-t flex justify-end gap-2">
+                <button type="button" onclick="closeCreateSprintModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-bold">Cancel</button>
+                <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold">Create Sprint</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// 1. Live Priority Formula Demo Calculator
+function recalcPriorityDemo() {
+    const sevSel = document.getElementById('calcSeverity');
+    const catSel = document.getElementById('calcCategory');
+    
+    const sevWeight = parseInt(sevSel.options[sevSel.selectedIndex].getAttribute('data-weight'));
+    const urgWeight = parseInt(catSel.options[catSel.selectedIndex].getAttribute('data-urgency'));
+    const urgLabel = catSel.options[catSel.selectedIndex].getAttribute('data-label').split(' ')[0] + ' Urgency';
+    
+    const score = sevWeight * urgWeight;
+    
+    let label = 'LOW';
+    let badgeClass = 'bg-slate-300 text-slate-900';
+    let rule = 'Low priority / when time permits';
+    
+    if (score >= 10) {
+        label = 'URGENT';
+        badgeClass = 'bg-rose-500 text-white animate-pulse';
+        rule = 'Rule: Score >= 10 -> URGENT (Drop everything and fix now!)';
+    } else if (score >= 7) {
+        label = 'HIGH';
+        badgeClass = 'bg-orange-500 text-white';
+        rule = 'Rule: Score between 7 - 9 -> HIGH priority';
+    } else if (score >= 4) {
+        label = 'MEDIUM';
+        badgeClass = 'bg-amber-400 text-slate-900';
+        rule = 'Rule: Score between 4 - 6 -> MEDIUM priority';
+    } else {
+        label = 'LOW';
+        badgeClass = 'bg-slate-400 text-white';
+        rule = 'Rule: Score < 4 -> LOW priority';
+    }
+    
+    document.getElementById('demoFormulaText').innerText = `${sevWeight} (Severity) × ${urgWeight} (${urgLabel}) = ${score.toFixed(1)}`;
+    document.getElementById('demoScoreNumber').innerText = score.toFixed(1);
+    
+    const pBadge = document.getElementById('demoPriorityBadge');
+    pBadge.className = `inline-flex items-center px-2.5 py-0.5 rounded text-xs font-black ${badgeClass}`;
+    pBadge.innerText = `${label} PRIORITY`;
+    
+    document.getElementById('demoActionBadge').innerText = rule;
+}
+
+// 2. Direct Stage Selector
+async function updateBugStage(issueId, targetStage) {
+    try {
+        const res = await fetch(`/api/v1/bugs/${issueId}/transition`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({target_stage: targetStage, note: 'Updated from Milestone 2 Workflow Controller'})
+        });
+        if (res.ok) {
+            window.location.reload();
+        } else {
+            const data = await res.json();
+            alert('Error updating stage: ' + (data.detail || 'Failed'));
+        }
+    } catch(err) {
+        alert('Network error: ' + err);
+    }
+}
+
+// 3. Add Backlog Issue to Sprint
+async function addBacklogToSprint(issueId) {
+    const sprintId = document.getElementById(`sprintSelect_${issueId}`).value;
+    try {
+        const res = await fetch(`/api/v1/sprints/${sprintId}/add-issue/${issueId}`, {
+            method: 'POST'
+        });
+        if (res.ok) {
+            window.location.reload();
+        } else {
+            alert('Failed to add issue to sprint');
+        }
+    } catch(err) {
+        alert('Network error: ' + err);
+    }
+}
+
+// 4. Complete Sprint
+async function completeSprint(sprintId) {
+    if (!confirm('Are you sure you want to mark this Sprint as COMPLETED? Velocity will be calculated.')) return;
+    try {
+        const res = await fetch(`/api/v1/sprints/${sprintId}/complete`, {
+            method: 'POST'
+        });
+        if (res.ok) {
+            window.location.reload();
+        } else {
+            alert('Failed to complete sprint');
+        }
+    } catch(err) {
+        alert('Network error: ' + err);
+    }
+}
+
+// 5. Create Sprint Modal Handling
+function openCreateSprintModal() {
+    const today = new Date();
+    const inTwoWeeks = new Date();
+    inTwoWeeks.setDate(today.getDate() + 14);
+    
+    document.getElementById('modalStartDate').value = today.toISOString().split('T')[0];
+    document.getElementById('modalEndDate').value = inTwoWeeks.toISOString().split('T')[0];
+    document.getElementById('createSprintModal').classList.remove('hidden');
+}
+
+function closeCreateSprintModal() {
+    document.getElementById('createSprintModal').classList.add('hidden');
+}
+
+document.getElementById('createSprintForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const payload = {
+        project_id: 1,
+        sprint_name: document.getElementById('modalSprintName').value,
+        goal: document.getElementById('modalSprintGoal').value,
+        start_date: document.getElementById('modalStartDate').value,
+        end_date: document.getElementById('modalEndDate').value,
+        planned_velocity: parseInt(document.getElementById('modalVelocity').value) || 30
+    };
+    
+    const res = await fetch('/api/v1/sprints/', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+    });
+    if (res.ok) {
+        window.location.reload();
+    } else {
+        alert('Error creating sprint');
+    }
+});
+</script>
+{% endblock %}
