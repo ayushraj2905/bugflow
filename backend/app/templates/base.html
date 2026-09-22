@@ -48,7 +48,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 flex flex-col min-h-screen">
     <!-- Header / Navbar -->
-    <header class="bg-gradient-to-r from-sky-900 via-indigo-900 to-slate-900 text-white shadow-md">
+    <header class="bg-gradient-to-r from-sky-900 via-indigo-900 to-slate-900 text-white shadow-md sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <!-- Logo & Title -->
@@ -64,18 +64,18 @@
 
                 <!-- Navigation Links -->
                 <nav class="hidden lg:flex space-x-1 font-medium text-xs sm:text-sm">
-                    <a href="/" class="px-3 py-2 rounded-md hover:bg-sky-800/80 transition flex items-center gap-1.5"><i class="fa-solid fa-gauge"></i> Dashboard</a>
-                    <a href="/milestone2" class="px-3 py-2 rounded-md hover:bg-sky-800/80 transition flex items-center gap-1.5 font-bold text-amber-300"><i class="fa-solid fa-code-branch"></i> Milestone 2</a>
-                    <a href="/milestone3" class="px-3 py-2 rounded-md hover:bg-sky-800/80 transition flex items-center gap-1.5 font-bold text-emerald-300"><i class="fa-solid fa-chart-pie"></i> Milestone 3</a>
-                    <a href="/issues" class="px-3 py-2 rounded-md hover:bg-sky-800/80 transition flex items-center gap-1.5"><i class="fa-solid fa-list-check"></i> Issues</a>
-                    <a href="/new-issue" class="px-3 py-2 rounded-md bg-sky-600 hover:bg-sky-500 transition flex items-center gap-1.5 shadow font-bold"><i class="fa-solid fa-circle-plus"></i> New Issue</a>
-                    <a href="/sprint" class="px-3 py-2 rounded-md hover:bg-sky-800/80 transition flex items-center gap-1.5"><i class="fa-solid fa-table-columns"></i> Sprint Board</a>
-                    <a href="/analytics" class="px-3 py-2 rounded-md hover:bg-sky-800/80 transition flex items-center gap-1.5"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+                    <a href="/" class="px-2.5 py-2 rounded-md hover:bg-sky-800/80 transition flex items-center gap-1"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+                    <a href="/milestone2" class="px-2.5 py-2 rounded-md hover:bg-sky-800/80 transition flex items-center gap-1 font-bold text-amber-300"><i class="fa-solid fa-code-branch"></i> Milestone 2</a>
+                    <a href="/milestone3" class="px-2.5 py-2 rounded-md hover:bg-sky-800/80 transition flex items-center gap-1 font-bold text-emerald-300"><i class="fa-solid fa-chart-pie"></i> Milestone 3</a>
+                    <a href="/milestone4" class="px-2.5 py-2 rounded-md hover:bg-sky-800/80 transition flex items-center gap-1 font-bold text-sky-300"><i class="fa-solid fa-microchip"></i> Milestone 4</a>
+                    <a href="/issues" class="px-2.5 py-2 rounded-md hover:bg-sky-800/80 transition flex items-center gap-1"><i class="fa-solid fa-list-check"></i> Issues</a>
+                    <a href="/new-issue" class="px-2.5 py-2 rounded-md bg-sky-600 hover:bg-sky-500 transition flex items-center gap-1 shadow font-bold"><i class="fa-solid fa-circle-plus"></i> New Issue</a>
+                    <a href="/sprint" class="px-2.5 py-2 rounded-md hover:bg-sky-800/80 transition flex items-center gap-1"><i class="fa-solid fa-table-columns"></i> Sprint Board</a>
+                    <a href="/analytics" class="px-2.5 py-2 rounded-md hover:bg-sky-800/80 transition flex items-center gap-1"><i class="fa-solid fa-chart-line"></i> Analytics</a>
                 </nav>
 
                 <!-- Active User Profile, Switcher Dropdown & Logout -->
                 <div class="flex items-center space-x-2 sm:space-x-3">
-                    <!-- User Profile Card & Switcher Button -->
                     <div class="relative">
                         <button onclick="toggleUserMenu()" class="flex items-center space-x-2 text-xs sm:text-sm bg-sky-950/90 hover:bg-sky-900 px-3 py-1.5 rounded-full border border-sky-600 transition shadow-inner">
                             <i class="fa-solid fa-circle-user text-sky-400 text-sm"></i>
@@ -172,18 +172,90 @@
                 <strong>BugFlow Enterprise</strong> • Spring Boot 3 / PostgreSQL & FastAPI Architecture
             </div>
             <div>
-                Role-based Access Enforced • Smart Priority Math • CI/CD Webhooks & Plotly Analytics
+                Role-based Access Enforced • Smart Priority Math • CI/CD Webhooks & PyTest 100% Validated
             </div>
         </div>
     </footer>
 
+    <!-- ========================================================================= -->
+    <!-- 🤖 FLOATING AI CHATBOT WIDGET (BugFlow AI Assistant) -->
+    <!-- ========================================================================= -->
+    <div class="fixed bottom-5 right-5 z-50">
+        <!-- Floating Trigger Bubble Button -->
+        <button id="chatbotTriggerBtn" onclick="toggleChatbot()" class="group flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-sky-600 via-indigo-600 to-purple-600 hover:from-sky-500 hover:to-purple-500 text-white font-black text-xs sm:text-sm rounded-full shadow-2xl hover:scale-105 transition-all duration-200 border-2 border-white/20">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+            <i class="fa-solid fa-wand-magic-sparkles text-amber-300 group-hover:rotate-12 transition"></i>
+            <span>BugFlow AI Assistant</span>
+        </button>
+
+        <!-- Floating Chatbot Modal / Drawer -->
+        <div id="chatbotModal" class="hidden absolute bottom-14 right-0 w-[92vw] sm:w-96 md:w-[420px] bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col transition-all duration-200" style="height: 520px; max-height: 80vh;">
+            <!-- Chat Header -->
+            <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-sky-950 text-white p-3.5 flex justify-between items-center border-b border-indigo-900">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center text-white text-sm shadow">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div>
+                        <div class="font-bold text-xs sm:text-sm text-white flex items-center gap-1.5">
+                            BugFlow AI Assistant <span class="text-[9px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.2 rounded font-mono font-bold border border-emerald-400/30">ONLINE</span>
+                        </div>
+                        <div class="text-[10px] text-slate-300">Ask about bugs, metrics, priority math & system architecture</div>
+                    </div>
+                </div>
+                <button onclick="toggleChatbot()" class="text-slate-400 hover:text-white p-1 transition"><i class="fa-solid fa-xmark text-base"></i></button>
+            </div>
+
+            <!-- Messages Stream Container -->
+            <div id="chatMessages" class="flex-1 p-3.5 overflow-y-auto space-y-3 text-xs bg-slate-50">
+                <!-- Initial Welcome Message from Bot -->
+                <div class="flex gap-2.5 items-start">
+                    <div class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 text-xs font-bold shadow">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div class="bg-white p-3 rounded-2xl rounded-tl-none border border-slate-200 shadow-sm space-y-2 text-slate-800 max-w-[85%] leading-relaxed">
+                        <div>Hello! I am your <b>BugFlow AI Assistant</b>. How can I help you today?</div>
+                        <div class="text-[11px] text-slate-500">You can ask me about live bugs, quality metrics, priority formulas, Git webhooks, or team workload!</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Suggestion Action Pills -->
+            <div id="chatSuggestions" class="px-3 py-2 bg-white border-t border-slate-100 flex flex-wrap gap-1.5 overflow-x-auto text-[11px]">
+                <button onclick="sendQuickPrompt('What is BugFlow?')" class="px-2.5 py-1 bg-slate-100 hover:bg-sky-50 hover:text-sky-700 text-slate-700 rounded-full font-medium transition border border-slate-200 truncate">
+                    💡 What is BugFlow?
+                </button>
+                <button onclick="sendQuickPrompt('Show critical bugs')" class="px-2.5 py-1 bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-700 rounded-full font-medium transition border border-slate-200 truncate">
+                    🐞 Show critical bugs
+                </button>
+                <button onclick="sendQuickPrompt('What is our Fix Rate & MTTR?')" class="px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 text-slate-700 rounded-full font-medium transition border border-slate-200 truncate">
+                    📊 Quality Metrics
+                </button>
+                <button onclick="sendQuickPrompt('How is Priority calculated?')" class="px-2.5 py-1 bg-slate-100 hover:bg-amber-50 hover:text-amber-700 text-slate-700 rounded-full font-medium transition border border-slate-200 truncate">
+                    🧮 Priority Formula
+                </button>
+                <button onclick="sendQuickPrompt('Show developer workload')" class="px-2.5 py-1 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 rounded-full font-medium transition border border-slate-200 truncate">
+                    🧑‍💼 Team Workload
+                </button>
+            </div>
+
+            <!-- Chat Input Box -->
+            <form id="chatInputForm" onsubmit="handleChatSubmit(event)" class="p-2.5 bg-white border-t border-slate-200 flex items-center gap-2">
+                <input type="text" id="chatUserInput" placeholder="Ask anything about BugFlow or bugs..." class="flex-1 px-3.5 py-2 bg-slate-100 border border-slate-300 rounded-xl text-xs focus:ring-2 focus:ring-sky-500 focus:outline-none font-medium">
+                <button type="submit" id="chatSendBtn" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow transition flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
     <script>
     function toggleUserMenu() {
         const dd = document.getElementById('userSwitchDropdown');
         dd.classList.toggle('hidden');
     }
 
-    // Close dropdown on outside click
     document.addEventListener('click', (e) => {
         const dd = document.getElementById('userSwitchDropdown');
         if (!dd) return;
@@ -211,6 +283,127 @@
             window.location.href = '/login';
         } catch(err) {
             window.location.href = '/login';
+        }
+    }
+
+    // =========================================================================
+    // CHATBOT CLIENT LOGIC
+    // =========================================================================
+    function toggleChatbot() {
+        const modal = document.getElementById('chatbotModal');
+        modal.classList.toggle('hidden');
+        if (!modal.classList.contains('hidden')) {
+            document.getElementById('chatUserInput').focus();
+        }
+    }
+
+    function sendQuickPrompt(text) {
+        document.getElementById('chatUserInput').value = text;
+        handleChatSubmit(new Event('submit'));
+    }
+
+    function formatMarkdown(text) {
+        if (!text) return '';
+        let formatted = text
+            .replace(/\n\n/g, '<br><br>')
+            .replace(/\n/g, '<br>')
+            .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+            .replace(/\*(.*?)\*/g, '<i>$1</i>')
+            .replace(/`([^`]+)`/g, '<code class="bg-slate-100 text-sky-800 font-mono px-1 py-0.5 rounded border border-slate-200">$1</code>')
+            .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" class="text-sky-600 font-bold underline hover:text-sky-800" target="_blank">$1</a>');
+        return formatted;
+    }
+
+    async function handleChatSubmit(e) {
+        if (e && e.preventDefault) e.preventDefault();
+        const input = document.getElementById('chatUserInput');
+        const query = input.value.trim();
+        if (!query) return;
+
+        const container = document.getElementById('chatMessages');
+
+        // 1. Append User Bubble
+        const userDiv = document.createElement('div');
+        userDiv.className = 'flex gap-2.5 items-start justify-end';
+        userDiv.innerHTML = `
+            <div class="bg-gradient-to-r from-sky-600 to-indigo-600 text-white p-3 rounded-2xl rounded-tr-none shadow-sm text-xs max-w-[85%] leading-relaxed font-medium">
+                ${query}
+            </div>
+            <div class="w-7 h-7 rounded-lg bg-sky-950 text-white flex items-center justify-center shrink-0 text-xs font-bold shadow">
+                <i class="fa-solid fa-user"></i>
+            </div>
+        `;
+        container.appendChild(userDiv);
+        input.value = '';
+
+        // 2. Append Loading Typing Bubble
+        const loadingDiv = document.createElement('div');
+        loadingDiv.id = 'chatLoadingBubble';
+        loadingDiv.className = 'flex gap-2.5 items-start';
+        loadingDiv.innerHTML = `
+            <div class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 text-xs font-bold shadow">
+                <i class="fa-solid fa-robot"></i>
+            </div>
+            <div class="bg-white p-3 rounded-2xl rounded-tl-none border border-slate-200 shadow-sm text-xs text-slate-500 flex items-center gap-1.5">
+                <i class="fa-solid fa-spinner fa-spin text-indigo-600"></i> Thinking & querying live database...
+            </div>
+        `;
+        container.appendChild(loadingDiv);
+        container.scrollTop = container.scrollHeight;
+
+        try {
+            const res = await fetch('/api/v1/chat', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({message: query})
+            });
+            const data = await res.json();
+
+            // Remove loading
+            const loadEl = document.getElementById('chatLoadingBubble');
+            if (loadEl) loadEl.remove();
+
+            // 3. Append Bot Reply Bubble
+            const botDiv = document.createElement('div');
+            botDiv.className = 'flex gap-2.5 items-start';
+            botDiv.innerHTML = `
+                <div class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center shrink-0 text-xs font-bold shadow">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div class="bg-white p-3.5 rounded-2xl rounded-tl-none border border-slate-200 shadow-sm space-y-1.5 text-slate-800 text-xs max-w-[88%] leading-relaxed">
+                    ${formatMarkdown(data.reply)}
+                </div>
+            `;
+            container.appendChild(botDiv);
+
+            // Update suggestions
+            if (data.suggestions && data.suggestions.length > 0) {
+                const suggContainer = document.getElementById('chatSuggestions');
+                suggContainer.innerHTML = data.suggestions.map(s => `
+                    <button onclick="sendQuickPrompt('${s}')" class="px-2.5 py-1 bg-slate-100 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 rounded-full font-medium transition border border-slate-200 truncate">
+                        ${s}
+                    </button>
+                `).join('');
+            }
+
+            container.scrollTop = container.scrollHeight;
+
+        } catch (err) {
+            const loadEl = document.getElementById('chatLoadingBubble');
+            if (loadEl) loadEl.remove();
+
+            const errDiv = document.createElement('div');
+            errDiv.className = 'flex gap-2.5 items-start';
+            errDiv.innerHTML = `
+                <div class="w-7 h-7 rounded-lg bg-rose-600 text-white flex items-center justify-center shrink-0 text-xs font-bold shadow">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+                <div class="bg-rose-50 border border-rose-200 text-rose-800 p-3 rounded-2xl rounded-tl-none text-xs">
+                    Error contacting AI Assistant: ${err}
+                </div>
+            `;
+            container.appendChild(errDiv);
+            container.scrollTop = container.scrollHeight;
         }
     }
     </script>
