@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -68,14 +68,22 @@
                     <a href="/milestone2" class="px-2.5 py-2 rounded-md hover:bg-sky-800/80 transition flex items-center gap-1 font-bold text-amber-300"><i class="fa-solid fa-code-branch"></i> Milestone 2</a>
                     <a href="/milestone3" class="px-2.5 py-2 rounded-md hover:bg-sky-800/80 transition flex items-center gap-1 font-bold text-emerald-300"><i class="fa-solid fa-chart-pie"></i> Milestone 3</a>
                     <a href="/milestone4" class="px-2.5 py-2 rounded-md hover:bg-sky-800/80 transition flex items-center gap-1 font-bold text-sky-300"><i class="fa-solid fa-microchip"></i> Milestone 4</a>
+                    <a href="/notifications" class="px-2.5 py-2 rounded-md hover:bg-sky-800/80 transition flex items-center gap-1 font-bold text-amber-200"><i class="fa-solid fa-bell"></i> Notifications <span id="navNavUnreadBadge" class="hidden px-1.5 py-0.2 bg-rose-600 text-white rounded-full text-[9px] font-black">0</span></a>
                     <a href="/issues" class="px-2.5 py-2 rounded-md hover:bg-sky-800/80 transition flex items-center gap-1"><i class="fa-solid fa-list-check"></i> Issues</a>
                     <a href="/new-issue" class="px-2.5 py-2 rounded-md bg-sky-600 hover:bg-sky-500 transition flex items-center gap-1 shadow font-bold"><i class="fa-solid fa-circle-plus"></i> New Issue</a>
                     <a href="/sprint" class="px-2.5 py-2 rounded-md hover:bg-sky-800/80 transition flex items-center gap-1"><i class="fa-solid fa-table-columns"></i> Sprint Board</a>
                     <a href="/analytics" class="px-2.5 py-2 rounded-md hover:bg-sky-800/80 transition flex items-center gap-1"><i class="fa-solid fa-chart-line"></i> Analytics</a>
                 </nav>
 
-                <!-- Active User Profile, Switcher Dropdown & Logout -->
+                <!-- Active User Profile, Notification Bell, Switcher Dropdown & Logout -->
                 <div class="flex items-center space-x-2 sm:space-x-3">
+                    <!-- Notification Bell Button -->
+                    <a href="/notifications" id="navNotificationBtn" class="relative flex items-center gap-1.5 px-3 py-1.5 bg-sky-950/90 hover:bg-sky-900 text-white rounded-full border border-sky-600 transition shadow-inner font-bold text-xs group" title="Notification Center">
+                        <i class="fa-solid fa-bell text-amber-300 text-sm group-hover:rotate-12 transition"></i>
+                        <span class="hidden md:inline">Alerts</span>
+                        <span id="navUnreadBadge" class="hidden px-1.5 py-0.2 bg-rose-600 text-white rounded-full text-[10px] font-black border border-rose-400 animate-pulse">0</span>
+                    </a>
+
                     <div class="relative">
                         <button onclick="toggleUserMenu()" class="flex items-center space-x-2 text-xs sm:text-sm bg-sky-950/90 hover:bg-sky-900 px-3 py-1.5 rounded-full border border-sky-600 transition shadow-inner">
                             <i class="fa-solid fa-circle-user text-sky-400 text-sm"></i>
@@ -83,6 +91,7 @@
                             <span class="text-[10px] bg-sky-500/30 text-sky-200 px-1.5 py-0.2 rounded font-semibold border border-sky-400/30">{{ current_user.role if current_user else 'ADMIN' }}</span>
                             <i class="fa-solid fa-chevron-down text-[10px] text-sky-300 ml-0.5"></i>
                         </button>
+
 
                         <!-- User Switcher Dropdown Menu -->
                         <div id="userSwitchDropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 overflow-hidden text-slate-800">
@@ -285,6 +294,31 @@
             window.location.href = '/login';
         }
     }
+
+    // =========================================================================
+    // REAL-TIME NOTIFICATION BADGE UPDATER
+    // =========================================================================
+    async function updateNotificationBadge() {
+        try {
+            const res = await fetch('/api/v1/notifications/unread-count');
+            if (res.ok) {
+                const data = await res.json();
+                const count = data.unread_count || 0;
+                const badge1 = document.getElementById('navUnreadBadge');
+                const badge2 = document.getElementById('navNavUnreadBadge');
+                if (count > 0) {
+                    if (badge1) { badge1.textContent = count; badge1.classList.remove('hidden'); }
+                    if (badge2) { badge2.textContent = count; badge2.classList.remove('hidden'); }
+                } else {
+                    if (badge1) { badge1.classList.add('hidden'); }
+                    if (badge2) { badge2.classList.add('hidden'); }
+                }
+            }
+        } catch(e) { }
+    }
+    document.addEventListener('DOMContentLoaded', updateNotificationBadge);
+    setInterval(updateNotificationBadge, 10000);
+
 
     // =========================================================================
     // CHATBOT CLIENT LOGIC

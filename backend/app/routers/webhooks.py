@@ -1,4 +1,4 @@
-﻿import re
+import re
 import uuid
 from typing import Dict, Any, Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
@@ -9,8 +9,11 @@ from ..database import get_db
 from ..models.issue import Issue, AuditLog
 from ..models.project import Project
 from ..services.workflow_service import WorkflowService
+from ..services.notification_service import NotificationService
+
 
 router = APIRouter(prefix="/api/v1/webhooks", tags=["CI/CD & Git Webhooks"])
+
 
 class GitCommitPayload(BaseModel):
     message: str
@@ -88,6 +91,12 @@ async def process_git_webhook(req: Request, db: Session = Depends(get_db)):
                 db.commit()
                 db.refresh(issue)
 
+                # Trigger Git Webhook Notification
+                try:
+                    NotificationService.notify_git_webhook_transition(db, issue, commit_id, msg)
+                except Exception:
+                    pass
+
                 updated_issues.append({
                     "issue_id": issue.id,
                     "issue_key": issue.issue_key,
@@ -97,6 +106,7 @@ async def process_git_webhook(req: Request, db: Session = Depends(get_db)):
                     "commit_id": commit_id,
                     "message": msg
                 })
+
 
     return {
         "status": "success",

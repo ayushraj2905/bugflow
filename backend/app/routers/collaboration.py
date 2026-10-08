@@ -1,4 +1,4 @@
-﻿import os
+import os
 import shutil
 import uuid
 from datetime import datetime
@@ -12,6 +12,7 @@ from ..models.user import User
 from ..schemas import CommentCreate
 from ..services.auth_service import get_current_user
 from ..services.workflow_service import WorkflowService
+from ..services.notification_service import NotificationService
 
 router = APIRouter(prefix="/api/v1/collaboration", tags=["Collaboration, Comments & Attachments"])
 
@@ -47,6 +48,13 @@ def post_comment(
     )
     db.commit()
     db.refresh(new_comment)
+
+    # Trigger Real-time Comment Notification
+    try:
+        NotificationService.notify_comment_added(db, issue, new_comment, current_user)
+    except Exception:
+        pass
+
 
     return {
         "message": "Comment posted successfully",

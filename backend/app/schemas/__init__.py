@@ -1,4 +1,4 @@
-﻿from typing import Optional, List
+from typing import Optional, List
 from datetime import datetime, date
 from pydantic import BaseModel
 
@@ -97,3 +97,24 @@ class CICDWebhookPayload(BaseModel):
     error_log: str
     failed_stage: str
     branch: str
+
+# Notification Schemas
+class NotificationResponse(BaseModel):
+    id: int
+    user_id: int
+    issue_id: Optional[int] = None
+    project_id: Optional[int] = None
+    notification_type: str
+    title: str
+    message: str
+    is_read: bool
+    created_at: datetime
+    issue_key: Optional[str] = None
+    project_name: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class NotificationUnreadCount(BaseModel):
+    unread_count: int
+

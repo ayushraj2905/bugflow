@@ -1,4 +1,4 @@
-﻿from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import date
 from typing import List, Optional
@@ -8,8 +8,11 @@ from ..models.issue import Issue, AuditLog
 from ..models.project import Project
 from ..schemas import SprintCreate
 from ..services.workflow_service import WorkflowService
+from ..services.notification_service import NotificationService
+
 
 router = APIRouter(prefix="/api/v1/sprints", tags=["Agile Sprint Planning & Backlog"])
+
 
 # 1. List Sprints
 @router.get("/")
@@ -92,6 +95,19 @@ def add_issue_to_sprint(sprint_id: int, issue_id: int, db: Session = Depends(get
         f"Moved from {prev_sprint_name} into {sprint.sprint_name}"
     )
     db.commit()
+
+    # Trigger Sprint Event Notification
+    try:
+        NotificationService.notify_sprint_event(
+            db=db,
+            sprint=sprint,
+            title=f"Issue {issue.issue_key} added to {sprint.sprint_name}",
+            message=f"Issue {issue.issue_key} ('{issue.title}') has been added to {sprint.sprint_name} from {prev_sprint_name}.",
+            issue=issue
+        )
+    except Exception:
+        pass
+
     return {
         "message": f"Issue {issue.issue_key} successfully added to {sprint.sprint_name}",
         "issue_id": issue.id,
@@ -110,6 +126,18 @@ def complete_sprint(sprint_id: int, db: Session = Depends(get_db)):
     resolved_count = sum(1 for i in sprint.issues if i.dev_stage in ["CLOSED", "RESOLVED"])
     
     db.commit()
+
+    # Trigger Sprint Completion Notification
+    try:
+        NotificationService.notify_sprint_event(
+            db=db,
+            sprint=sprint,
+            title=f"Sprint {sprint.sprint_name} Completed",
+            message=f"Sprint {sprint.sprint_name} has been marked as COMPLETED with {resolved_count}/{len(sprint.issues)} defects resolved (Velocity: {resolved_count})."
+        )
+    except Exception:
+        pass
+
     return {
         "message": f"Sprint {sprint.sprint_name} marked as COMPLETED",
         "sprint_id": sprint.id,
@@ -118,6 +146,7 @@ def complete_sprint(sprint_id: int, db: Session = Depends(get_db)):
         "total_issues": len(sprint.issues),
         "resolved_issues": resolved_count
     }
+
 
 # 5. Get Product Backlog (Unassigned Bugs)
 @router.get("/backlog")

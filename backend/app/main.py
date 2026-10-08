@@ -1,4 +1,4 @@
-﻿import os
+import os
 from fastapi import FastAPI, Request, Depends, HTTPException, Response
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -11,8 +11,10 @@ from .models.issue import Issue, Comment, Attachment, AuditLog, DevStageEnum
 from .models.user import User
 from .models.project import Project, BugCategory
 from .models.sprint import Sprint
+from .models.notification import Notification, NotificationTypeEnum
 from .services.analytics_service import AnalyticsService
 from .services.triage_engine import TriageEngine
+from .services.notification_service import NotificationService
 from .services.auth_service import get_current_user
 from .routers import (
     auth,
@@ -22,8 +24,10 @@ from .routers import (
     webhooks,
     projects,
     collaboration,
-    chat
+    chat,
+    notifications
 )
+
 
 # Initialize database schema
 Base.metadata.create_all(bind=engine)
@@ -59,8 +63,10 @@ app.include_router(analytics.router)
 app.include_router(webhooks.router)
 app.include_router(projects.router)
 app.include_router(chat.router)
+app.include_router(notifications.router)
 
 # Template engine setup
+
 template_dir = os.path.join(os.path.dirname(__file__), "templates")
 templates = Jinja2Templates(directory=template_dir)
 
@@ -204,7 +210,29 @@ def milestone4_view(request: Request, db: Session = Depends(get_db), current_use
         "current_user": current_user
     })
 
+# Dedicated Notification Center UI Page
+@app.get("/notifications", response_class=HTMLResponse)
+def notifications_view(request: Request, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    user_id = current_user.id if current_user else 1
+    # Auto-seed realistic initial notifications if empty
+    NotificationService.seed_default_notifications_if_empty(db, user_id)
+    
+    notifications = db.query(Notification).filter(
+
+        Notification.user_id == user_id
+    ).order_by(Notification.created_at.desc()).all()
+    
+    unread_count = sum(1 for n in notifications if not n.is_read)
+    
+    return templates.TemplateResponse(request, "notifications.html", {
+        "title": "Notification Center",
+        "notifications": notifications,
+        "unread_count": unread_count,
+        "current_user": current_user
+    })
+
 @app.get("/issues", response_class=HTMLResponse)
+
 def issues_list_view(request: Request, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     all_issues = db.query(Issue).order_by(Issue.created_at.desc()).all()
     return templates.TemplateResponse(request, "issues.html", {

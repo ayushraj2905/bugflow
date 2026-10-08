@@ -1,4 +1,4 @@
-﻿import csv
+import csv
 import io
 import re
 from datetime import datetime
@@ -16,8 +16,11 @@ from ..services.auth_service import get_current_user
 from ..services.triage_engine import TriageEngine
 from ..services.duplicate_detector import DuplicateDetector
 from ..services.workflow_service import WorkflowService
+from ..services.notification_service import NotificationService
 
 router = APIRouter(tags=["Issue Management & Triage"])
+
+
 
 class TriageRecommendationRequest(BaseModel):
     title: str
@@ -204,6 +207,15 @@ def create_issue(data: IssueCreate, db: Session = Depends(get_db), current_user:
         new_issue.dev_stage = "ASSIGNED"
 
     db.commit()
+
+    # Trigger Real-time Event Notifications
+    try:
+        NotificationService.notify_issue_created(db, new_issue, current_user)
+        if data.assignee_id:
+            NotificationService.notify_issue_assigned(db, new_issue, data.assignee_id, current_user)
+    except Exception as e:
+        pass # Non-blocking notification dispatch
+
     return {
         "message": "Issue created successfully",
         "issue_id": new_issue.id,
@@ -211,6 +223,7 @@ def create_issue(data: IssueCreate, db: Session = Depends(get_db), current_user:
         "priority": new_issue.priority,
         "priority_score": new_issue.priority_score
     }
+
 
 # 4. Get Issue Detail
 @router.get("/api/v1/bugs/{issue_id}")
@@ -293,7 +306,15 @@ def transition_issue(issue_id: int, req: TransitionRequest, db: Session = Depend
     if not issue:
         raise HTTPException(status_code=404, detail="Issue not found")
 
+    old_stage = issue.dev_stage
     updated = WorkflowService.transition_stage(db, issue, req.target_stage, user_id, req.note or "")
+
+    # Trigger Workflow Notification
+    try:
+        NotificationService.notify_workflow_transition(db, updated, old_stage, updated.dev_stage, current_user)
+    except Exception:
+        pass
+
     return {"message": f"Issue transitioned to {updated.dev_stage}", "dev_stage": updated.dev_stage}
 
 # 6. Assign Developer
@@ -325,7 +346,15 @@ def assign_developer(issue_id: int, dev_id: int, db: Session = Depends(get_db), 
         f"Assigned to {dev.full_name} ({dev.team})"
     )
     db.commit()
+
+    # Trigger Assignment Notification
+    try:
+        NotificationService.notify_issue_assigned(db, issue, dev.id, current_user)
+    except Exception:
+        pass
+
     return {"message": f"Assigned to {dev.full_name}", "assignee": dev.full_name}
+
 
 # 7. Check Duplicate
 @router.post("/api/v1/bugs/check-duplicate")

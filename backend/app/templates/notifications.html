@@ -1,0 +1,425 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Header Section -->
+    <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-sky-950 text-white p-6 sm:p-8 rounded-3xl shadow-xl border border-indigo-900/60 relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
+            <div>
+                <div class="flex items-center gap-2.5 mb-1.5">
+                    <span class="px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-mono text-[11px] font-bold border border-amber-400/30 flex items-center gap-1">
+                        <i class="fa-solid fa-bell animate-bounce"></i> Real-Time Notifications
+                    </span>
+                    <span id="unreadCountHeaderBadge" class="px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-mono text-[11px] font-bold border border-rose-400/30">
+                        {{ unread_count }} Unread
+                    </span>
+                </div>
+                <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-white flex items-center gap-3">
+                    Notification Center
+                </h1>
+                <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
+                    Live telemetry, automated developer assignments, workflow transitions, sprint events, and team collaboration alerts.
+                </p>
+            </div>
+
+            <!-- Header Action Buttons -->
+            <div class="flex flex-wrap items-center gap-2.5">
+                <button onclick="markAllAsRead()" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-lg transition flex items-center gap-2 border border-indigo-400/30 hover:scale-[1.02] active:scale-[0.98]">
+                    <i class="fa-solid fa-check-double"></i> Mark All as Read
+                </button>
+                <button onclick="loadNotifications(currentFilter)" class="px-3.5 py-2.5 bg-slate-800/80 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold shadow transition flex items-center gap-1.5 border border-slate-700" title="Refresh Notifications">
+                    <i class="fa-solid fa-arrows-rotate"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top KPI / Metric Statistics Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <!-- Card 1: Total Alerts -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Total Alerts</div>
+                <div id="statTotal" class="text-xl sm:text-2xl font-black text-slate-800 mt-0.5">{{ notifications|length }}</div>
+                <div class="text-[10px] text-slate-500 font-medium">Historical events</div>
+            </div>
+            <div class="w-11 h-11 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center text-lg shadow-inner">
+                <i class="fa-solid fa-inbox"></i>
+            </div>
+        </div>
+
+        <!-- Card 2: Unread Alerts -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Unread Alerts</div>
+                <div id="statUnread" class="text-xl sm:text-2xl font-black text-rose-600 mt-0.5">{{ unread_count }}</div>
+                <div class="text-[10px] text-rose-500 font-medium flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span> Action required
+                </div>
+            </div>
+            <div class="w-11 h-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-lg shadow-inner">
+                <i class="fa-solid fa-bell"></i>
+            </div>
+        </div>
+
+        <!-- Card 3: Issues & Assignments -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Assignments & Bugs</div>
+                <div id="statAssignments" class="text-xl sm:text-2xl font-black text-indigo-600 mt-0.5">
+                    {{ notifications|selectattr('notification_type', 'in', ['ISSUE_CREATED', 'ISSUE_ASSIGNED', 'ISSUE_RESOLVED', 'ISSUE_CLOSED'])|list|length }}
+                </div>
+                <div class="text-[10px] text-slate-500 font-medium">Direct work items</div>
+            </div>
+            <div class="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg shadow-inner">
+                <i class="fa-solid fa-user-gear"></i>
+            </div>
+        </div>
+
+        <!-- Card 4: Sprint & Workflow -->
+        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+            <div>
+                <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Sprints & Workflow</div>
+                <div id="statWorkflow" class="text-xl sm:text-2xl font-black text-emerald-600 mt-0.5">
+                    {{ notifications|selectattr('notification_type', 'in', ['WORKFLOW_CHANGED', 'SPRINT_EVENT', 'SYSTEM'])|list|length }}
+                </div>
+                <div class="text-[10px] text-slate-500 font-medium">Pipeline updates</div>
+            </div>
+            <div class="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shadow-inner">
+                <i class="fa-solid fa-diagram-project"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Navigation Bar -->
+    <div class="bg-white p-2.5 sm:p-3 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-2">
+        <div class="flex flex-wrap items-center gap-1.5 text-xs font-bold" id="filterContainer">
+            <button onclick="setFilter('all')" data-filter="all" class="filter-btn px-3 py-1.5 rounded-xl bg-indigo-600 text-white shadow-sm transition">
+                <i class="fa-solid fa-list-ul mr-1"></i> All
+            </button>
+            <button onclick="setFilter('unread')" data-filter="unread" class="filter-btn px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+                <i class="fa-solid fa-envelope mr-1 text-rose-500"></i> Unread
+            </button>
+            <button onclick="setFilter('issues')" data-filter="issues" class="filter-btn px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+                <i class="fa-solid fa-bug mr-1 text-amber-500"></i> Issues
+            </button>
+            <button onclick="setFilter('assignments')" data-filter="assignments" class="filter-btn px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+                <i class="fa-solid fa-user-check mr-1 text-indigo-500"></i> Assignments
+            </button>
+            <button onclick="setFilter('workflow')" data-filter="workflow" class="filter-btn px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+                <i class="fa-solid fa-arrows-split-up-and-left mr-1 text-purple-500"></i> Workflow
+            </button>
+            <button onclick="setFilter('comments')" data-filter="comments" class="filter-btn px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+                <i class="fa-solid fa-comments mr-1 text-sky-500"></i> Comments
+            </button>
+            <button onclick="setFilter('sprints')" data-filter="sprints" class="filter-btn px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+                <i class="fa-solid fa-person-running mr-1 text-cyan-500"></i> Sprints
+            </button>
+            <button onclick="setFilter('system')" data-filter="system" class="filter-btn px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+                <i class="fa-solid fa-shield-halved mr-1 text-rose-500"></i> System
+            </button>
+        </div>
+
+        <div class="text-[11px] font-semibold text-slate-400 px-2 flex items-center gap-1.5">
+            <i class="fa-solid fa-user-shield text-slate-500"></i>
+            User: <b class="text-slate-700">{{ current_user.full_name if current_user else 'Admin' }}</b>
+        </div>
+    </div>
+
+    <!-- Notification Stream List / Timeline Container -->
+    <div id="notificationsContainer" class="space-y-3">
+        {% if notifications %}
+            {% for notif in notifications %}
+                <div id="notif-card-{{ notif.id }}" data-type="{{ notif.notification_type }}" data-read="{{ 'true' if notif.is_read else 'false' }}"
+                     class="notif-card p-4 sm:p-5 rounded-2xl border transition-all duration-200 hover:shadow-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3.5
+                     {% if not notif.is_read %}
+                        bg-indigo-50/50 border-indigo-200 border-l-4 border-l-indigo-600 shadow-sm
+                     {% else %}
+                        bg-white border-slate-200
+                     {% endif %}">
+                    
+                    <!-- Left: Icon + Content -->
+                    <div class="flex items-start gap-3.5 flex-1 min-w-0">
+                        <!-- Type Icon -->
+                        <div class="w-10 h-10 rounded-2xl shrink-0 flex items-center justify-center text-sm shadow-inner mt-0.5
+                            {% if notif.notification_type == 'ISSUE_CREATED' %}
+                                bg-amber-100 text-amber-700 border border-amber-200
+                            {% elif notif.notification_type == 'ISSUE_ASSIGNED' %}
+                                bg-indigo-100 text-indigo-700 border border-indigo-200
+                            {% elif notif.notification_type == 'WORKFLOW_CHANGED' %}
+                                bg-purple-100 text-purple-700 border border-purple-200
+                            {% elif notif.notification_type == 'COMMENT_ADDED' %}
+                                bg-sky-100 text-sky-700 border border-sky-200
+                            {% elif notif.notification_type == 'ISSUE_RESOLVED' %}
+                                bg-emerald-100 text-emerald-700 border border-emerald-200
+                            {% elif notif.notification_type == 'ISSUE_CLOSED' %}
+                                bg-green-100 text-green-800 border border-green-200
+                            {% elif notif.notification_type == 'SPRINT_EVENT' %}
+                                bg-cyan-100 text-cyan-700 border border-cyan-200
+                            {% else %}
+                                bg-rose-100 text-rose-700 border border-rose-200
+                            {% endif %}">
+                            
+                            {% if notif.notification_type == 'ISSUE_CREATED' %}
+                                <i class="fa-solid fa-plus-circle"></i>
+                            {% elif notif.notification_type == 'ISSUE_ASSIGNED' %}
+                                <i class="fa-solid fa-user-check"></i>
+                            {% elif notif.notification_type == 'WORKFLOW_CHANGED' %}
+                                <i class="fa-solid fa-arrows-split-up-and-left"></i>
+                            {% elif notif.notification_type == 'COMMENT_ADDED' %}
+                                <i class="fa-solid fa-comment-dots"></i>
+                            {% elif notif.notification_type == 'ISSUE_RESOLVED' %}
+                                <i class="fa-solid fa-circle-check"></i>
+                            {% elif notif.notification_type == 'ISSUE_CLOSED' %}
+                                <i class="fa-solid fa-box-archive"></i>
+                            {% elif notif.notification_type == 'SPRINT_EVENT' %}
+                                <i class="fa-solid fa-person-running"></i>
+                            {% else %}
+                                <i class="fa-solid fa-shield-halved"></i>
+                            {% endif %}
+                        </div>
+
+                        <!-- Content Details -->
+                        <div class="space-y-1 min-w-0 flex-1">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <h3 class="font-bold text-slate-900 text-xs sm:text-sm">{{ notif.title }}</h3>
+                                
+                                <!-- Read/Unread Tag -->
+                                <span id="status-tag-{{ notif.id }}" class="text-[9px] px-1.5 py-0.5 rounded font-mono font-bold uppercase
+                                    {% if not notif.is_read %}
+                                        bg-rose-100 text-rose-700 border border-rose-200
+                                    {% else %}
+                                        bg-slate-100 text-slate-500 border border-slate-200
+                                    {% endif %}">
+                                    {{ 'UNREAD' if not notif.is_read else 'READ' }}
+                                </span>
+
+                                <!-- Notification Category Badge -->
+                                <span class="text-[9px] px-1.5 py-0.5 rounded font-mono font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                                    {{ notif.notification_type }}
+                                </span>
+                            </div>
+
+                            <p class="text-xs text-slate-600 leading-relaxed">{{ notif.message }}</p>
+
+                            <!-- Tags & Related Context -->
+                            <div class="flex flex-wrap items-center gap-2 text-[10px] text-slate-400 pt-0.5">
+                                <span><i class="fa-regular fa-clock"></i> {{ notif.created_at.strftime('%Y-%m-%d %H:%M') if notif.created_at else 'Just now' }}</span>
+                                
+                                {% if notif.issue %}
+                                    <span class="text-slate-300">•</span>
+                                    <a href="/issue/{{ notif.issue_id }}" class="text-sky-600 hover:text-sky-800 font-bold hover:underline flex items-center gap-1">
+                                        <i class="fa-solid fa-link text-[9px]"></i> {{ notif.issue.issue_key }}
+                                    </a>
+                                {% endif %}
+
+                                {% if notif.project %}
+                                    <span class="text-slate-300">•</span>
+                                    <span class="font-medium text-slate-500"><i class="fa-solid fa-folder-open text-[9px]"></i> {{ notif.project.project_name }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Quick Actions -->
+                    <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                        {% if not notif.is_read %}
+                            <button id="read-btn-{{ notif.id }}" onclick="markAsRead({{ notif.id }})" class="px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-bold transition flex items-center gap-1 border border-indigo-200 shadow-sm" title="Mark as Read">
+                                <i class="fa-solid fa-check"></i> <span class="hidden sm:inline">Mark Read</span>
+                            </button>
+                        {% endif %}
+
+                        <button onclick="deleteNotif({{ notif.id }})" class="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 transition" title="Delete Notification">
+                            <i class="fa-regular fa-trash-can text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <!-- Empty State -->
+            <div id="emptyNotifBox" class="bg-white p-12 text-center rounded-3xl border border-slate-200 shadow-sm space-y-3">
+                <div class="w-16 h-16 rounded-3xl bg-indigo-50 text-indigo-500 flex items-center justify-center mx-auto text-2xl shadow-inner">
+                    <i class="fa-solid fa-bell-slash"></i>
+                </div>
+                <div class="text-base font-bold text-slate-800">No Notifications Available</div>
+                <div class="text-xs text-slate-500 max-w-sm mx-auto">
+                    You're completely caught up! New issues, stage updates, comments, and sprint assignments will automatically appear here in real time.
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- Client-side Interactive Logic -->
+<script>
+let currentFilter = 'all';
+
+function setFilter(filter) {
+    currentFilter = filter;
+    
+    // Update button active styles
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        if (btn.dataset.filter === filter) {
+            btn.className = 'filter-btn px-3 py-1.5 rounded-xl bg-indigo-600 text-white shadow-sm transition';
+        } else {
+            btn.className = 'filter-btn px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition';
+        }
+    });
+
+    const cards = document.querySelectorAll('.notif-card');
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+        const type = card.dataset.type;
+        const isRead = card.dataset.read === 'true';
+
+        let show = false;
+        if (filter === 'all') {
+            show = true;
+        } else if (filter === 'unread') {
+            show = !isRead;
+        } else if (filter === 'issues') {
+            show = ['ISSUE_CREATED', 'ISSUE_RESOLVED', 'ISSUE_CLOSED'].includes(type);
+        } else if (filter === 'assignments') {
+            show = (type === 'ISSUE_ASSIGNED');
+        } else if (filter === 'workflow') {
+            show = (type === 'WORKFLOW_CHANGED');
+        } else if (filter === 'comments') {
+            show = (type === 'COMMENT_ADDED');
+        } else if (filter === 'sprints') {
+            show = (type === 'SPRINT_EVENT');
+        } else if (filter === 'system') {
+            show = (type === 'SYSTEM');
+        }
+
+        if (show) {
+            card.classList.remove('hidden');
+            visibleCount++;
+        } else {
+            card.classList.add('hidden');
+        }
+    });
+
+    // Handle filter empty state
+    let emptyEl = document.getElementById('filterEmptyState');
+    if (visibleCount === 0) {
+        if (!emptyEl) {
+            emptyEl = document.createElement('div');
+            emptyEl.id = 'filterEmptyState';
+            emptyEl.className = 'bg-white p-8 text-center rounded-2xl border border-slate-200 text-xs text-slate-500 space-y-2';
+            emptyEl.innerHTML = `
+                <i class="fa-solid fa-filter text-slate-300 text-2xl"></i>
+                <div class="font-bold text-slate-700">No notifications matching '${filter}'</div>
+                <button onclick="setFilter('all')" class="text-indigo-600 hover:underline font-bold">View all notifications</button>
+            `;
+            document.getElementById('notificationsContainer').appendChild(emptyEl);
+        }
+        emptyEl.classList.remove('hidden');
+    } else if (emptyEl) {
+        emptyEl.classList.add('hidden');
+    }
+}
+
+async function markAsRead(id) {
+    try {
+        const res = await fetch(`/api/v1/notifications/${id}/read`, {method: 'POST'});
+        if (res.ok) {
+            // Optimistic DOM update
+            const card = document.getElementById(`notif-card-${id}`);
+            if (card) {
+                card.dataset.read = 'true';
+                card.className = 'notif-card p-4 sm:p-5 rounded-2xl border transition-all duration-200 hover:shadow-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3.5 bg-white border-slate-200';
+            }
+            const tag = document.getElementById(`status-tag-${id}`);
+            if (tag) {
+                tag.textContent = 'READ';
+                tag.className = 'text-[9px] px-1.5 py-0.5 rounded font-mono font-bold uppercase bg-slate-100 text-slate-500 border border-slate-200';
+            }
+            const btn = document.getElementById(`read-btn-${id}`);
+            if (btn) btn.remove();
+
+            // Refresh global badges and local counters
+            updateNotificationBadge();
+            decrementUnreadCount();
+        }
+    } catch(err) {
+        console.error('Error marking as read:', err);
+    }
+}
+
+async function markAllAsRead() {
+    try {
+        const res = await fetch('/api/v1/notifications/mark-all-read', {method: 'POST'});
+        if (res.ok) {
+            // Update all cards in DOM
+            document.querySelectorAll('.notif-card').forEach(card => {
+                card.dataset.read = 'true';
+                card.className = 'notif-card p-4 sm:p-5 rounded-2xl border transition-all duration-200 hover:shadow-md flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3.5 bg-white border-slate-200';
+            });
+            document.querySelectorAll('[id^="status-tag-"]').forEach(tag => {
+                tag.textContent = 'READ';
+                tag.className = 'text-[9px] px-1.5 py-0.5 rounded font-mono font-bold uppercase bg-slate-100 text-slate-500 border border-slate-200';
+            });
+            document.querySelectorAll('[id^="read-btn-"]').forEach(btn => btn.remove());
+
+            // Zero unread badge counters
+            const statUnread = document.getElementById('statUnread');
+            if (statUnread) statUnread.textContent = '0';
+            const unreadHeader = document.getElementById('unreadCountHeaderBadge');
+            if (unreadHeader) unreadHeader.textContent = '0 Unread';
+
+            updateNotificationBadge();
+        }
+    } catch(err) {
+        console.error('Error marking all read:', err);
+    }
+}
+
+async function deleteNotif(id) {
+    if (!confirm('Are you sure you want to delete this notification?')) return;
+    try {
+        const res = await fetch(`/api/v1/notifications/${id}`, {method: 'DELETE'});
+        if (res.ok) {
+            const card = document.getElementById(`notif-card-${id}`);
+            if (card) {
+                if (card.dataset.read === 'false') {
+                    decrementUnreadCount();
+                }
+                card.remove();
+                decrementTotalCount();
+            }
+            updateNotificationBadge();
+        }
+    } catch(err) {
+        console.error('Error deleting notification:', err);
+    }
+}
+
+function decrementUnreadCount() {
+    const statUnread = document.getElementById('statUnread');
+    if (statUnread) {
+        let count = parseInt(statUnread.textContent) || 0;
+        if (count > 0) count--;
+        statUnread.textContent = count;
+        const unreadHeader = document.getElementById('unreadCountHeaderBadge');
+        if (unreadHeader) unreadHeader.textContent = `${count} Unread`;
+    }
+}
+
+function decrementTotalCount() {
+    const statTotal = document.getElementById('statTotal');
+    if (statTotal) {
+        let count = parseInt(statTotal.textContent) || 0;
+        if (count > 0) count--;
+        statTotal.textContent = count;
+    }
+}
+
+async function loadNotifications(filter = 'all') {
+    window.location.reload();
+}
+</script>
+{% endblock %}
